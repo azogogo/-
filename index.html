@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>40頁漫畫｜每日小任務工具</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Noto Sans TC", "Segoe UI", sans-serif;
+      background: #f7f5f0;
+      color: #2f2a24;
+      line-height: 1.6;
+    }
+
+    .container {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 24px 16px 48px;
+    }
+
+    .hero,
+    .card {
+      background: #ffffff;
+      border-radius: 24px;
+      padding: 24px;
+      margin-bottom: 16px;
+      box-shadow: 0 8px 24px rgba(60, 50, 40, 0.06);
+    }
+
+    .label {
+      font-size: 14px;
+      color: #8a8075;
+      margin-bottom: 8px;
+    }
+
+    h1 {
+      font-size: 28px;
+      margin: 0 0 8px;
+      letter-spacing: 0.02em;
+    }
+
+    h2 {
+      font-size: 20px;
+      margin: 0 0 16px;
+    }
+
+    p {
+      margin: 0;
+      color: #6f675e;
+    }
+
+    .energy-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+
+    .energy-button {
+      border: 1px solid #ded8cf;
+      background: #ffffff;
+      border-radius: 18px;
+      padding: 16px;
+      text-align: left;
+      cursor: pointer;
+      font-size: 16px;
+      color: #2f2a24;
+      transition: 0.2s;
+    }
+
+    .energy-button:hover {
+      background: #f4f1eb;
+    }
+
+    .energy-button.active {
+      background: #ece6dc;
+      border-color: #4a4037;
+      font-weight: 700;
+    }
+
+    .energy-desc {
+      display: block;
+      font-size: 13px;
+      color: #7f766c;
+      font-weight: 400;
+      margin-top: 6px;
+    }
+
+    .task-box {
+      background: #f0ebe3;
+      border-radius: 24px;
+      padding: 24px;
+      min-height: 120px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      margin-bottom: 16px;
+    }
+
+    .task-title {
+      font-size: 14px;
+      color: #81766a;
+      margin-bottom: 8px;
+    }
+
+    .task-text {
+      font-size: 26px;
+      font-weight: 700;
+      line-height: 1.5;
+    }
+
+    .button-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    button.action {
+      border: none;
+      border-radius: 16px;
+      padding: 12px 18px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .secondary {
+      background: #ffffff;
+      border: 1px solid #d8d1c7 !important;
+      color: #3a332c;
+    }
+
+    .primary {
+      background: #3f372f;
+      color: #ffffff;
+    }
+
+    button.action:hover {
+      transform: translateY(-1px);
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 96px;
+      border: 1px solid #ded8cf;
+      border-radius: 18px;
+      padding: 14px;
+      font-size: 16px;
+      font-family: inherit;
+      resize: vertical;
+      outline: none;
+    }
+
+    textarea:focus {
+      border-color: #5d5348;
+    }
+
+    .success {
+      display: none;
+      margin-top: 16px;
+      background: #f8f6f2;
+      border-radius: 16px;
+      padding: 14px;
+      color: #5c5147;
+    }
+
+    .reminder {
+      background: #f0ebe3;
+      border-radius: 18px;
+      padding: 16px;
+      color: #4f463d;
+      margin-bottom: 8px;
+    }
+
+    .logs {
+      display: grid;
+      gap: 10px;
+    }
+
+    .log-item {
+      background: #faf9f6;
+      border-radius: 16px;
+      padding: 14px;
+      font-size: 14px;
+    }
+
+    .log-date {
+      font-weight: 700;
+    }
+
+    .small {
+      font-size: 14px;
+      color: #8a8075;
+    }
+
+    @media (max-width: 640px) {
+      .energy-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .task-text {
+        font-size: 22px;
+      }
+
+      .hero,
+      .card {
+        padding: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="container">
+    <section class="hero">
+      <div class="label">40頁漫畫｜每日小任務工具</div>
+      <h1>今天只做一件小事就好</h1>
+      <p>先選今天的能量，抽一個任務，完成後留下下一步。低能量也可以推進。</p>
+    </section>
+
+    <section class="card">
+      <h2>1. 今天的能量</h2>
+      <div class="energy-grid">
+        <button class="energy-button active" data-energy="low">
+          很累
+          <span class="energy-desc">只要碰一下作品就好</span>
+        </button>
+        <button class="energy-button" data-energy="mid">
+          還可以
+          <span class="energy-desc">做 15～25 分鐘的小推進</span>
+        </button>
+        <button class="energy-button" data-energy="high">
+          有精神
+          <span class="energy-desc">推進一個比較完整的小段落</span>
+        </button>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>2. 今天的小任務</h2>
+      <div class="task-box">
+        <div class="task-title">建議任務</div>
+        <div class="task-text" id="taskText">打開漫畫檔案，看一頁進度</div>
+      </div>
+      <div class="button-row">
+        <button class="action secondary" id="shuffleBtn">換一個任務</button>
+        <button class="action primary" id="doneBtn">我完成了</button>
+      </div>
+      <div class="success" id="successMessage">做得很好。今天不用再加碼，能停在這裡也算成功。</div>
+    </section>
+
+    <section class="card">
+      <h2>3. 留給下次的提示</h2>
+      <textarea id="nextStep" placeholder="例：下次打開時，先畫 P06 第三格的表情。"></textarea>
+    </section>
+
+    <section class="card">
+      <h2>通知文字</h2>
+      <div class="reminder">今天不用畫很多，只要選一個小任務就好。打開檔案也算前進。</div>
+      <p class="small">建議把手機提醒設在平日晚上 20:30。提醒只要一則，不要把它變成壓力。</p>
+    </section>
+
+    <section class="card" id="logSection" style="display:none;">
+      <h2>最近完成紀錄</h2>
+      <div class="logs" id="logs"></div>
+    </section>
+  </main>
+
+  <script>
+    const tasks = {
+      low: [
+        "打開漫畫檔案，看一頁進度",
+        "改一句對白",
+        "寫下下一次要做什麼",
+        "標記一個卡住的地方",
+        "整理一張參考圖"
+      ],
+      mid: [
+        "畫一格草稿",
+        "修一格人物表情",
+        "整理一頁台詞",
+        "描一格線稿",
+        "補一格簡單背景或剪影"
+      ],
+      high: [
+        "完成半頁草稿",
+        "整理 2～3 頁閱讀節奏",
+        "完成一頁粗分鏡",
+        "完成一頁對白排版",
+        "處理一個重要頁面的構圖"
+      ]
+    };
+
+    let currentEnergy = "low";
+    let currentTask = tasks.low[0];
+
+    const taskText = document.getElementById("taskText");
+    const shuffleBtn = document.getElementById("shuffleBtn");
+    const doneBtn = document.getElementById("doneBtn");
+    const successMessage = document.getElementById("successMessage");
+    const nextStepInput = document.getElementById("nextStep");
+    const logsContainer = document.getElementById("logs");
+    const logSection = document.getElementById("logSection");
+    const energyButtons = document.querySelectorAll(".energy-button");
+
+    function setEnergy(energy) {
+      currentEnergy = energy;
+      energyButtons.forEach(button => {
+        button.classList.toggle("active", button.dataset.energy === energy);
+      });
+      currentTask = tasks[energy][0];
+      taskText.textContent = currentTask;
+      successMessage.style.display = "none";
+    }
+
+    function shuffleTask() {
+      const list = tasks[currentEnergy];
+      let next = currentTask;
+      while (list.length > 1 && next === currentTask) {
+        next = list[Math.floor(Math.random() * list.length)];
+      }
+      currentTask = next;
+      taskText.textContent = currentTask;
+      successMessage.style.display = "none";
+    }
+
+    function getTodayText() {
+      const now = new Date();
+      return `${now.getMonth() + 1}/${now.getDate()}`;
+    }
+
+    function saveLog() {
+      const nextStep = nextStepInput.value.trim() || "下次打開檔案後，先看一頁進度。";
+      const log = {
+        date: getTodayText(),
+        task: currentTask,
+        nextStep
+      };
+
+      const logs = JSON.parse(localStorage.getItem("comicTaskLogs") || "[]");
+      logs.unshift(log);
+      localStorage.setItem("comicTaskLogs", JSON.stringify(logs.slice(0, 5)));
+      renderLogs();
+      successMessage.style.display = "block";
+      nextStepInput.value = "";
+    }
+
+    function renderLogs() {
+      const logs = JSON.parse(localStorage.getItem("comicTaskLogs") || "[]");
+      logsContainer.innerHTML = "";
+
+      if (logs.length === 0) {
+        logSection.style.display = "none";
+        return;
+      }
+
+      logSection.style.display = "block";
+      logs.forEach(log => {
+        const item = document.createElement("div");
+        item.className = "log-item";
+        item.innerHTML = `
+          <div><span class="log-date">${log.date}</span>｜${log.task}</div>
+          <div class="small">下次：${log.nextStep}</div>
+        `;
+        logsContainer.appendChild(item);
+      });
+    }
+
+    energyButtons.forEach(button => {
+      button.addEventListener("click", () => setEnergy(button.dataset.energy));
+    });
+
+    shuffleBtn.addEventListener("click", shuffleTask);
+    doneBtn.addEventListener("click", saveLog);
+
+    renderLogs();
+  </script>
+</body>
+</html>
