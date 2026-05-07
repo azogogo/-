@@ -216,7 +216,6 @@
       60% { transform: scale(1.05) rotate(2deg); }
     }
 
-    /* 完成的小光點 */
     .sparkles {
       position: absolute;
       inset: 0;
@@ -279,57 +278,61 @@
     .nav-prev { left: 8px; }
     .nav-next { right: 8px; }
 
-    /* 步驟勾選 */
-    .stage-checks {
-      display: grid;
-      gap: 10px;
+    /* === 步驟按鈕 === */
+    .step-btns {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
       margin-top: 8px;
     }
 
-    .stage-check {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      padding: 12px 16px;
-      background: var(--paper);
-      border-radius: 14px;
-      cursor: pointer;
+    .step-btn {
+      width: 68px;
+      height: 68px;
+      border-radius: 16px;
       border: 2px solid transparent;
-      transition: 0.2s;
-    }
-
-    .stage-check:hover { border-color: var(--accent-light); }
-
-    .stage-check.checked {
-      background: linear-gradient(135deg, var(--paper-2), var(--paper));
-      border-color: var(--accent-light);
-    }
-
-    .stage-check input {
-      width: 22px;
-      height: 22px;
-      accent-color: var(--accent);
+      background: var(--paper);
       cursor: pointer;
-      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      transition: 0.2s;
+      padding: 6px;
     }
 
-    .stage-icon {
-      font-size: 22px;
-      width: 32px;
-      text-align: center;
+    .step-btn:hover:not(.done) {
+      border-color: var(--accent-light);
+      background: var(--paper-2);
+      transform: scale(1.06);
     }
 
-    .stage-text { flex: 1; }
-    .stage-name { font-size: 16px; font-weight: 600; }
+    .step-btn:active:not(.done) {
+      transform: scale(0.94);
+    }
 
-    .stage-meta {
-      font-size: 13px;
+    .step-btn img {
+      width: 34px;
+      height: 34px;
+      object-fit: contain;
+      transition: filter 0.2s, opacity 0.2s;
+    }
+
+    .step-btn .step-label {
+      font-size: 10px;
       color: var(--ink-soft);
-      margin-top: 1px;
+      white-space: nowrap;
+      font-weight: 600;
     }
 
-    .stage-check.checked .stage-name {
-      text-decoration: line-through;
+    .step-btn.done {
+      opacity: 0.35;
+      filter: grayscale(1);
+      border-color: transparent;
+    }
+
+    .step-btn.done .step-label {
       color: var(--ink-soft);
     }
 
@@ -415,10 +418,12 @@
       display: block;
     }
 
-    .breakdown-item .emoji {
-      font-size: 16px;
+    .breakdown-item .icon-small {
+      width: 20px;
+      height: 20px;
+      object-fit: contain;
       display: block;
-      margin-bottom: 2px;
+      margin: 0 auto 2px;
     }
 
     /* === 番茄鐘 === */
@@ -546,6 +551,8 @@
       .mini-grid { grid-template-columns: repeat(8, 1fr); }
       .timer-time { font-size: 40px; }
       .nav-btn { width: 40px; height: 40px; font-size: 18px; }
+      .step-btn { width: 56px; height: 56px; }
+      .step-btn img { width: 28px; height: 28px; }
     }
   </style>
 </head>
@@ -588,7 +595,7 @@
         <button class="nav-btn nav-next" id="nextBtn" title="下一杯">›</button>
       </div>
 
-      <div class="stage-checks" id="stageChecks"></div>
+      <div id="stageChecks"></div>
     </section>
 
     <section class="card">
@@ -639,25 +646,23 @@
   <script>
     const TOTAL_PAGES = 40;
     const STAGES = [
-      { key: "sketch",  name: "草圖／分鏡", coffee: "咖啡粉", emoji: "☕" },
-      { key: "lineart", name: "線稿",       coffee: "熱水",   emoji: "💧" },
-      { key: "color",   name: "上色",       coffee: "糖",     emoji: "🍯" },
-      { key: "finish",  name: "完稿",       coffee: "牛奶",   emoji: "🥛" },
-      { key: "dialog",  name: "對白",       coffee: "拉花",   emoji: "🌿" }
+      { key: "sketch",  name: "草圖／分鏡", coffee: "咖啡粉", icon: "icon-grounds.png", sound: [523, 659] },
+      { key: "lineart", name: "線稿",       coffee: "熱水",   icon: "icon-water.png",   sound: [659, 784] },
+      { key: "color",   name: "上色",       coffee: "糖",     icon: "icon-sugar.png",   sound: [784, 880] },
+      { key: "finish",  name: "完稿",       coffee: "牛奶",   icon: "icon-milk.png",    sound: [880, 1047] },
+      { key: "dialog",  name: "對白",       coffee: "拉花",   icon: "icon-latte.png",   sound: [1047, 1319] }
     ];
     const TOTAL_STEPS = TOTAL_PAGES * STAGES.length;
     const ENERGY_MINUTES = { low: 10, mid: 25, high: 50 };
     const STATUS_LABELS = ["空杯", "備好咖啡粉", "注入熱水", "加糖完畢", "加奶完成", "拉花完成 ✨"];
 
-    // ⭐ 圖檔對應：完成階段數 → 圖檔路徑
-    // 因為圖檔放在 repo 根目錄（跟 index.html 同層），直接寫檔名就好
     const CUP_IMAGES = [
-      "cup-0-empty.png",     // 0 步：空杯
-      "cup-1-grounds.png",   // 1 步：咖啡粉
-      "cup-2-water.png",     // 2 步：加熱水
-      "cup-3-sugar.png",     // 3 步：加糖
-      "cup-4-milk.png",      // 4 步：加奶
-      "cup-5-latte.png"      // 5 步：拉花完成
+      "cup-0-empty.png",
+      "cup-1-grounds.png",
+      "cup-2-water.png",
+      "cup-3-sugar.png",
+      "cup-4-milk.png",
+      "cup-5-latte.png"
     ];
     const CUP_MINI_IMAGES = [
       "cup-0-empty-mini.png",
@@ -725,45 +730,35 @@
       stagePageNum.textContent = "P " + String(currentPage).padStart(2, "0") + " / 40";
       stageStatus.textContent = STATUS_LABELS[done];
 
-      // 換圖
       cupImage.src = CUP_IMAGES[done];
       cupImage.alt = STATUS_LABELS[done];
 
-      // 完成狀態加光點
       if (done === 5) cupDisplay.classList.add("complete");
       else cupDisplay.classList.remove("complete");
 
-      // 動畫
       cupDisplay.classList.remove("slide-in-from-right", "slide-in-from-left", "celebrate");
       void cupDisplay.offsetWidth;
       if (animateDirection === "right") cupDisplay.classList.add("slide-in-from-right");
       else if (animateDirection === "left") cupDisplay.classList.add("slide-in-from-left");
       else if (animateDirection === "celebrate") cupDisplay.classList.add("celebrate");
 
-      // 步驟勾選
-      let html = "";
+      // 步驟按鈕
+      let html = '<div class="step-btns">';
       STAGES.forEach(s => {
         const isChecked = !!data[s.key];
-        html += '<div class="stage-check ' + (isChecked ? "checked" : "") + '" data-stage="' + s.key + '">';
-        html += '<input type="checkbox" ' + (isChecked ? "checked" : "") + '>';
-        html += '<span class="stage-icon">' + s.emoji + '</span>';
-        html += '<div class="stage-text">';
-        html += '<div class="stage-name">' + s.name + '</div>';
-        html += '<div class="stage-meta">＝ ' + s.coffee + '</div>';
-        html += '</div>';
-        html += '</div>';
+        html += '<button class="step-btn ' + (isChecked ? 'done' : '') + '" data-stage="' + s.key + '">';
+        html += '<img src="' + s.icon + '" alt="' + s.coffee + '">';
+        html += '<span class="step-label">' + s.coffee + '</span>';
+        html += '</button>';
       });
+      html += '</div>';
       stageChecks.innerHTML = html;
 
-      stageChecks.querySelectorAll('.stage-check').forEach(row => {
-        row.addEventListener("click", (e) => {
-          if (e.target.tagName === "INPUT") return;
-          const cb = row.querySelector('input');
-          cb.checked = !cb.checked;
-          toggleStage(currentPage, row.dataset.stage, cb.checked);
-        });
-        row.querySelector('input').addEventListener("change", (e) => {
-          toggleStage(currentPage, row.dataset.stage, e.target.checked);
+      stageChecks.querySelectorAll('.step-btn').forEach(btn => {
+        btn.addEventListener("click", () => {
+          const isDone = btn.classList.contains("done");
+          if (!isDone) playSound(btn.dataset.stage);
+          toggleStage(currentPage, btn.dataset.stage, !isDone);
         });
       });
 
@@ -801,7 +796,7 @@
     function renderBreakdown() {
       stageBreakdown.innerHTML = STAGES.map(s =>
         '<div class="breakdown-item">' +
-        '<span class="emoji">' + s.emoji + '</span>' +
+        '<img class="icon-small" src="' + s.icon + '" alt="' + s.coffee + '">' +
         '<span class="count">' + getStageCount(s.key) + '</span>' +
         s.coffee +
         '</div>'
@@ -813,6 +808,45 @@
       renderStage(animateDirection);
       renderMini();
       renderBreakdown();
+    }
+
+    function playSound(stageKey) {
+      const s = STAGES.find(s => s.key === stageKey);
+      if (!s) return;
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        s.sound.forEach((freq, i) => {
+          const o = ctx.createOscillator();
+          const g = ctx.createGain();
+          o.connect(g); g.connect(ctx.destination);
+          o.frequency.value = freq;
+          o.type = "sine";
+          const t = ctx.currentTime + i * 0.1;
+          g.gain.setValueAtTime(0, t);
+          g.gain.linearRampToValueAtTime(0.15, t + 0.02);
+          g.gain.exponentialRampToValueAtTime(0.001, t + 0.4);
+          o.start(t); o.stop(t + 0.4);
+        });
+      } catch(e) {}
+    }
+
+    function playChime() {
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        [880, 1175].forEach((freq, i) => {
+          const o = ctx.createOscillator();
+          const g = ctx.createGain();
+          o.connect(g); g.connect(ctx.destination);
+          o.frequency.value = freq;
+          o.type = "sine";
+          const t = ctx.currentTime + i * 0.12;
+          g.gain.setValueAtTime(0, t);
+          g.gain.linearRampToValueAtTime(0.18, t + 0.02);
+          g.gain.exponentialRampToValueAtTime(0.001, t + 0.5);
+          o.start(t);
+          o.stop(t + 0.5);
+        });
+      } catch (e) {}
     }
 
     function toggleStage(pageNum, stageKey, value) {
@@ -840,25 +874,6 @@
       } else {
         renderStage();
       }
-    }
-
-    function playChime() {
-      try {
-        const ctx = new (window.AudioContext || window.webkitAudioContext)();
-        [880, 1175].forEach((freq, i) => {
-          const o = ctx.createOscillator();
-          const g = ctx.createGain();
-          o.connect(g); g.connect(ctx.destination);
-          o.frequency.value = freq;
-          o.type = "sine";
-          const t = ctx.currentTime + i * 0.12;
-          g.gain.setValueAtTime(0, t);
-          g.gain.linearRampToValueAtTime(0.18, t + 0.02);
-          g.gain.exponentialRampToValueAtTime(0.001, t + 0.5);
-          o.start(t);
-          o.stop(t + 0.5);
-        });
-      } catch (e) {}
     }
 
     prevBtn.addEventListener("click", () => {
