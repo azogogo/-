@@ -3,380 +3,969 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>40頁漫畫｜每日小任務工具</title>
+  <title>40杯咖啡｜漫畫進度</title>
   <style>
-    * {
-      box-sizing: border-box;
+    * { box-sizing: border-box; }
+
+    :root {
+      --paper: #f4ead7;
+      --paper-2: #ede0c4;
+      --ink: #3a2817;
+      --ink-soft: #6b4d34;
+      --cream: #fffdf6;
+      --accent: #8a5a30;
+      --accent-light: #c9a878;
+      --shadow: 0 8px 32px rgba(80, 50, 20, 0.12);
     }
 
     body {
       margin: 0;
       font-family: -apple-system, BlinkMacSystemFont, "Noto Sans TC", "Segoe UI", sans-serif;
-      background: #f7f5f0;
-      color: #2f2a24;
+      background:
+        radial-gradient(circle at 10% 20%, rgba(201, 168, 120, 0.12), transparent 40%),
+        radial-gradient(circle at 90% 80%, rgba(138, 90, 48, 0.08), transparent 40%),
+        var(--paper);
+      color: var(--ink);
       line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background-image:
+        radial-gradient(circle at 1px 1px, rgba(58, 40, 23, 0.04) 1px, transparent 0);
+      background-size: 14px 14px;
+      pointer-events: none;
+      z-index: 0;
     }
 
     .container {
-      max-width: 760px;
+      max-width: 880px;
       margin: 0 auto;
-      padding: 24px 16px 48px;
+      padding: 28px 20px 56px;
+      position: relative;
+      z-index: 1;
     }
 
-    .hero,
-    .card {
-      background: #ffffff;
-      border-radius: 24px;
-      padding: 24px;
-      margin-bottom: 16px;
-      box-shadow: 0 8px 24px rgba(60, 50, 40, 0.06);
+    .hero {
+      text-align: center;
+      padding: 8px 0 24px;
     }
 
     .label {
-      font-size: 14px;
-      color: #8a8075;
+      font-size: 13px;
+      color: var(--ink-soft);
+      letter-spacing: 0.2em;
       margin-bottom: 8px;
     }
 
-    h1 {
-      font-size: 28px;
+    .hero h1 {
+      font-size: 32px;
       margin: 0 0 8px;
       letter-spacing: 0.02em;
+      font-weight: 700;
     }
 
-    h2 {
-      font-size: 20px;
-      margin: 0 0 16px;
-    }
-
-    p {
+    .hero p {
       margin: 0;
-      color: #6f675e;
+      color: var(--ink-soft);
+      font-size: 15px;
     }
 
+    .card {
+      background: var(--cream);
+      border-radius: 28px;
+      padding: 28px;
+      margin-bottom: 18px;
+      box-shadow: var(--shadow);
+      position: relative;
+    }
+
+    h2 { font-size: 18px; margin: 0 0 14px; letter-spacing: 0.04em; }
+    h3 { font-size: 16px; margin: 0 0 12px; color: var(--ink-soft); }
+    p { margin: 0; }
+
+    /* === 整體進度 === */
+    .overall {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 14px;
+      align-items: center;
+      padding: 14px 18px;
+      background: var(--cream);
+      border-radius: 999px;
+      box-shadow: var(--shadow);
+      margin-bottom: 24px;
+    }
+
+    .overall-percent {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--accent);
+      line-height: 1;
+    }
+
+    .overall-bar-wrap {
+      height: 10px;
+      background: var(--paper-2);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .overall-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent-light), var(--accent));
+      border-radius: 999px;
+      transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .overall-detail {
+      font-size: 13px;
+      color: var(--ink-soft);
+      white-space: nowrap;
+    }
+
+    /* === 主舞台 === */
+    .stage {
+      background: var(--cream);
+      border-radius: 32px;
+      padding: 32px 28px 28px;
+      box-shadow: var(--shadow);
+      margin-bottom: 18px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .stage-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .stage-page-num {
+      font-size: 14px;
+      color: var(--ink-soft);
+      letter-spacing: 0.15em;
+    }
+
+    .stage-page-status {
+      font-size: 13px;
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    .cup-stage {
+      position: relative;
+      height: 340px;
+      margin: 8px auto 16px;
+    }
+
+    .cup-track {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .cup-display {
+      width: 300px;
+      height: 300px;
+      position: relative;
+      transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1),
+                  opacity 0.5s ease;
+    }
+
+    .cup-display img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+      filter: drop-shadow(0 8px 16px rgba(80, 50, 20, 0.12));
+      transition: opacity 0.4s ease;
+    }
+
+    .cup-display.slide-in-from-right {
+      animation: slideInFromRight 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .cup-display.slide-in-from-left {
+      animation: slideInFromLeft 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    @keyframes slideInFromRight {
+      0% { transform: translateX(120%) rotate(8deg); opacity: 0; }
+      100% { transform: translateX(0) rotate(0); opacity: 1; }
+    }
+
+    @keyframes slideInFromLeft {
+      0% { transform: translateX(-120%) rotate(-8deg); opacity: 0; }
+      100% { transform: translateX(0) rotate(0); opacity: 1; }
+    }
+
+    .cup-display.celebrate {
+      animation: celebrate 1s ease;
+    }
+
+    @keyframes celebrate {
+      0%, 100% { transform: scale(1); }
+      30% { transform: scale(1.08) rotate(-2deg); }
+      60% { transform: scale(1.05) rotate(2deg); }
+    }
+
+    /* 完成的小光點 */
+    .sparkles {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.5s;
+    }
+    .cup-display.complete .sparkles { opacity: 1; }
+
+    .sparkle {
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      background: #fff5d9;
+      border-radius: 50%;
+      box-shadow: 0 0 8px 2px rgba(255, 220, 130, 0.7);
+      animation: twinkle 2s ease-in-out infinite;
+    }
+    .sparkle:nth-child(1) { top: 18%; left: 20%; animation-delay: 0s; }
+    .sparkle:nth-child(2) { top: 25%; right: 15%; animation-delay: 0.5s; }
+    .sparkle:nth-child(3) { bottom: 30%; left: 12%; animation-delay: 1s; }
+    .sparkle:nth-child(4) { top: 50%; right: 8%; animation-delay: 1.5s; }
+
+    @keyframes twinkle {
+      0%, 100% { transform: scale(0.6); opacity: 0.3; }
+      50% { transform: scale(1.2); opacity: 1; }
+    }
+
+    /* 翻頁按鈕 */
+    .nav-btn {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      border: 1.5px solid var(--paper-2);
+      background: var(--cream);
+      color: var(--ink-soft);
+      font-size: 20px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: 0.2s;
+      z-index: 5;
+    }
+
+    .nav-btn:hover:not(:disabled) {
+      background: var(--paper-2);
+      color: var(--accent);
+      transform: translateY(-50%) scale(1.05);
+    }
+
+    .nav-btn:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+    }
+
+    .nav-prev { left: 8px; }
+    .nav-next { right: 8px; }
+
+    /* 步驟勾選 */
+    .stage-checks {
+      display: grid;
+      gap: 10px;
+      margin-top: 8px;
+    }
+
+    .stage-check {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 12px 16px;
+      background: var(--paper);
+      border-radius: 14px;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: 0.2s;
+    }
+
+    .stage-check:hover { border-color: var(--accent-light); }
+
+    .stage-check.checked {
+      background: linear-gradient(135deg, var(--paper-2), var(--paper));
+      border-color: var(--accent-light);
+    }
+
+    .stage-check input {
+      width: 22px;
+      height: 22px;
+      accent-color: var(--accent);
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .stage-icon {
+      font-size: 22px;
+      width: 32px;
+      text-align: center;
+    }
+
+    .stage-text { flex: 1; }
+    .stage-name { font-size: 16px; font-weight: 600; }
+
+    .stage-meta {
+      font-size: 13px;
+      color: var(--ink-soft);
+      margin-top: 1px;
+    }
+
+    .stage-check.checked .stage-name {
+      text-decoration: line-through;
+      color: var(--ink-soft);
+    }
+
+    /* === 縮圖列 === */
+    .mini-grid {
+      display: grid;
+      grid-template-columns: repeat(10, 1fr);
+      gap: 6px;
+      margin-top: 14px;
+    }
+
+    .mini-cup {
+      aspect-ratio: 1;
+      border-radius: 10px;
+      background: var(--paper);
+      border: 1.5px solid transparent;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: 0.15s;
+      position: relative;
+      overflow: hidden;
+      padding: 2px;
+    }
+
+    .mini-cup:hover {
+      border-color: var(--accent-light);
+      transform: scale(1.08);
+      z-index: 2;
+    }
+
+    .mini-cup.current {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px var(--accent-light);
+    }
+
+    .mini-cup img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+    }
+
+    .mini-cup-num {
+      position: absolute;
+      bottom: 1px;
+      right: 3px;
+      font-size: 9px;
+      color: var(--ink-soft);
+      font-weight: 600;
+      background: rgba(255, 253, 246, 0.8);
+      padding: 0 3px;
+      border-radius: 3px;
+      pointer-events: none;
+    }
+
+    .mini-cup.complete .mini-cup-num {
+      background: var(--accent);
+      color: var(--cream);
+    }
+
+    /* === 統計 === */
+    .stage-breakdown {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 8px;
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px dashed var(--paper-2);
+    }
+
+    .breakdown-item {
+      text-align: center;
+      font-size: 11px;
+      color: var(--ink-soft);
+    }
+
+    .breakdown-item .count {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--ink);
+      display: block;
+    }
+
+    .breakdown-item .emoji {
+      font-size: 16px;
+      display: block;
+      margin-bottom: 2px;
+    }
+
+    /* === 番茄鐘 === */
     .energy-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       gap: 12px;
+      margin-bottom: 24px;
     }
 
     .energy-button {
-      border: 1px solid #ded8cf;
-      background: #ffffff;
+      border: 1.5px solid var(--paper-2);
+      background: var(--cream);
       border-radius: 18px;
-      padding: 16px;
-      text-align: left;
+      padding: 14px;
+      text-align: center;
       cursor: pointer;
-      font-size: 16px;
-      color: #2f2a24;
+      font-size: 15px;
+      color: var(--ink);
       transition: 0.2s;
     }
 
-    .energy-button:hover {
-      background: #f4f1eb;
-    }
+    .energy-button:hover { background: var(--paper); }
 
     .energy-button.active {
-      background: #ece6dc;
-      border-color: #4a4037;
+      background: var(--paper-2);
+      border-color: var(--accent);
       font-weight: 700;
     }
 
     .energy-desc {
       display: block;
-      font-size: 13px;
-      color: #7f766c;
+      font-size: 12px;
+      color: var(--ink-soft);
       font-weight: 400;
-      margin-top: 6px;
+      margin-top: 4px;
     }
 
-    .task-box {
-      background: #f0ebe3;
-      border-radius: 24px;
-      padding: 24px;
-      min-height: 120px;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      margin-bottom: 16px;
-    }
+    .timer-display { text-align: center; }
 
-    .task-title {
-      font-size: 14px;
-      color: #81766a;
-      margin-bottom: 8px;
-    }
-
-    .task-text {
-      font-size: 26px;
+    .timer-time {
+      font-size: 48px;
       font-weight: 700;
-      line-height: 1.5;
+      color: var(--ink);
+      letter-spacing: 0.04em;
+      font-variant-numeric: tabular-nums;
     }
 
-    .button-row {
+    .timer-label {
+      color: var(--ink-soft);
+      margin-top: 4px;
+      font-size: 14px;
+    }
+
+    .timer-running .timer-time { color: var(--accent); }
+
+    .timer-buttons {
       display: flex;
-      flex-wrap: wrap;
       gap: 12px;
+      justify-content: center;
+      margin-top: 16px;
+      flex-wrap: wrap;
     }
 
     button.action {
       border: none;
-      border-radius: 16px;
-      padding: 12px 18px;
-      font-size: 16px;
+      border-radius: 14px;
+      padding: 12px 28px;
+      font-size: 15px;
       cursor: pointer;
       transition: 0.2s;
+      font-family: inherit;
     }
 
     .secondary {
-      background: #ffffff;
-      border: 1px solid #d8d1c7 !important;
-      color: #3a332c;
+      background: var(--cream);
+      border: 1.5px solid var(--paper-2) !important;
+      color: var(--ink);
     }
 
     .primary {
-      background: #3f372f;
-      color: #ffffff;
+      background: var(--ink);
+      color: var(--cream);
     }
 
-    button.action:hover {
-      transform: translateY(-1px);
+    button.action:hover:not(:disabled) { transform: translateY(-1px); }
+
+    .timer-ring-wrap {
+      position: relative;
+      width: 200px;
+      height: 200px;
+      margin: 0 auto;
     }
 
-    textarea {
-      width: 100%;
-      min-height: 96px;
-      border: 1px solid #ded8cf;
-      border-radius: 18px;
-      padding: 14px;
-      font-size: 16px;
-      font-family: inherit;
-      resize: vertical;
-      outline: none;
+    .timer-ring { transform: rotate(-90deg); }
+
+    .timer-ring-bg {
+      fill: none;
+      stroke: var(--paper-2);
+      stroke-width: 8;
     }
 
-    textarea:focus {
-      border-color: #5d5348;
+    .timer-ring-fill {
+      fill: none;
+      stroke: var(--accent);
+      stroke-width: 8;
+      stroke-linecap: round;
+      transition: stroke-dashoffset 1s linear;
     }
 
-    .success {
-      display: none;
-      margin-top: 16px;
-      background: #f8f6f2;
-      border-radius: 16px;
-      padding: 14px;
-      color: #5c5147;
+    .timer-text-overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
     }
 
-    .reminder {
-      background: #f0ebe3;
-      border-radius: 18px;
-      padding: 16px;
-      color: #4f463d;
-      margin-bottom: 8px;
-    }
-
-    .logs {
-      display: grid;
-      gap: 10px;
-    }
-
-    .log-item {
-      background: #faf9f6;
-      border-radius: 16px;
-      padding: 14px;
-      font-size: 14px;
-    }
-
-    .log-date {
-      font-weight: 700;
-    }
-
-    .small {
-      font-size: 14px;
-      color: #8a8075;
-    }
-
-    @media (max-width: 640px) {
-      .energy-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .task-text {
-        font-size: 22px;
-      }
-
-      .hero,
-      .card {
-        padding: 20px;
-      }
+    @media (max-width: 700px) {
+      .energy-grid { grid-template-columns: 1fr; }
+      .card, .stage { padding: 22px 18px; }
+      .cup-stage { height: 280px; }
+      .cup-display { width: 240px; height: 240px; }
+      .mini-grid { grid-template-columns: repeat(8, 1fr); }
+      .timer-time { font-size: 40px; }
+      .nav-btn { width: 40px; height: 40px; font-size: 18px; }
     }
   </style>
 </head>
 <body>
-  <main class="container">
-    <section class="hero">
-      <div class="label">40頁漫畫｜每日小任務工具</div>
-      <h1>今天只做一件小事就好</h1>
-      <p>先選今天的能量，抽一個任務，完成後留下下一步。低能量也可以推進。</p>
+  <div class="container">
+
+    <header class="hero">
+      <div class="label">40 CUPS · 漫畫進度</div>
+      <h1>一杯一杯把作品沖出來</h1>
+      <p>每完成一個步驟，咖啡就多一樣材料。沖完 40 杯，作品就完成了。</p>
+    </header>
+
+    <div class="overall">
+      <div class="overall-percent" id="overallPercent">0%</div>
+      <div class="overall-bar-wrap">
+        <div class="overall-bar-fill" id="overallBar" style="width: 0%;"></div>
+      </div>
+      <div class="overall-detail" id="overallDetail">0 / 200</div>
+    </div>
+
+    <section class="stage">
+      <div class="stage-header">
+        <span class="stage-page-num" id="stagePageNum">P 01 / 40</span>
+        <span class="stage-page-status" id="stageStatus">空杯</span>
+      </div>
+
+      <div class="cup-stage">
+        <button class="nav-btn nav-prev" id="prevBtn" title="上一杯">‹</button>
+        <div class="cup-track">
+          <div class="cup-display" id="cupDisplay">
+            <img id="cupImage" src="" alt="cup" />
+            <div class="sparkles">
+              <div class="sparkle"></div>
+              <div class="sparkle"></div>
+              <div class="sparkle"></div>
+              <div class="sparkle"></div>
+            </div>
+          </div>
+        </div>
+        <button class="nav-btn nav-next" id="nextBtn" title="下一杯">›</button>
+      </div>
+
+      <div class="stage-checks" id="stageChecks"></div>
     </section>
 
     <section class="card">
-      <h2>1. 今天的能量</h2>
+      <h2>40 杯總覽</h2>
+      <p style="font-size: 13px; color: var(--ink-soft); margin-bottom: 8px;">點任一杯快速跳過去</p>
+      <div class="mini-grid" id="miniGrid"></div>
+      <div class="stage-breakdown" id="stageBreakdown"></div>
+    </section>
+
+    <section class="card">
+      <h2>番茄鐘</h2>
+      <h3>1. 今天的能量</h3>
       <div class="energy-grid">
         <button class="energy-button active" data-energy="low">
           很累
-          <span class="energy-desc">只要碰一下作品就好</span>
+          <span class="energy-desc">10 分鐘</span>
         </button>
         <button class="energy-button" data-energy="mid">
           還可以
-          <span class="energy-desc">做 15～25 分鐘的小推進</span>
+          <span class="energy-desc">25 分鐘</span>
         </button>
         <button class="energy-button" data-energy="high">
           有精神
-          <span class="energy-desc">推進一個比較完整的小段落</span>
+          <span class="energy-desc">50 分鐘</span>
         </button>
       </div>
-    </section>
 
-    <section class="card">
-      <h2>2. 今天的小任務</h2>
-      <div class="task-box">
-        <div class="task-title">建議任務</div>
-        <div class="task-text" id="taskText">打開漫畫檔案，看一頁進度</div>
+      <div class="timer-display" id="timerDisplay">
+        <div class="timer-ring-wrap">
+          <svg class="timer-ring" width="200" height="200" viewBox="0 0 200 200">
+            <circle class="timer-ring-bg" cx="100" cy="100" r="90"></circle>
+            <circle class="timer-ring-fill" id="timerRingFill" cx="100" cy="100" r="90"
+                    stroke-dasharray="565.48" stroke-dashoffset="0"></circle>
+          </svg>
+          <div class="timer-text-overlay">
+            <div class="timer-time" id="timerTime">10:00</div>
+            <div class="timer-label" id="timerLabel">準備開始</div>
+          </div>
+        </div>
+        <div class="timer-buttons">
+          <button class="action primary" id="timerStartBtn">開始</button>
+          <button class="action secondary" id="timerResetBtn">重置</button>
+        </div>
       </div>
-      <div class="button-row">
-        <button class="action secondary" id="shuffleBtn">換一個任務</button>
-        <button class="action primary" id="doneBtn">我完成了</button>
-      </div>
-      <div class="success" id="successMessage">做得很好。今天不用再加碼，能停在這裡也算成功。</div>
     </section>
-
-    <section class="card">
-      <h2>3. 留給下次的提示</h2>
-      <textarea id="nextStep" placeholder="例：下次打開時，先畫 P06 第三格的表情。"></textarea>
-    </section>
-
-    <section class="card">
-      <h2>通知文字</h2>
-      <div class="reminder">今天不用畫很多，只要選一個小任務就好。打開檔案也算前進。</div>
-      <p class="small">建議把手機提醒設在平日晚上 20:30。提醒只要一則，不要把它變成壓力。</p>
-    </section>
-
-    <section class="card" id="logSection" style="display:none;">
-      <h2>最近完成紀錄</h2>
-      <div class="logs" id="logs"></div>
-    </section>
-  </main>
+  </div>
 
   <script>
-    const tasks = {
-      low: [
-        "打開漫畫檔案，看一頁進度",
-        "改一句對白",
-        "寫下下一次要做什麼",
-        "標記一個卡住的地方",
-        "整理一張參考圖"
-      ],
-      mid: [
-        "畫一格草稿",
-        "修一格人物表情",
-        "整理一頁台詞",
-        "描一格線稿",
-        "補一格簡單背景或剪影"
-      ],
-      high: [
-        "完成半頁草稿",
-        "整理 2～3 頁閱讀節奏",
-        "完成一頁粗分鏡",
-        "完成一頁對白排版",
-        "處理一個重要頁面的構圖"
-      ]
-    };
+    const TOTAL_PAGES = 40;
+    const STAGES = [
+      { key: "sketch",  name: "草圖／分鏡", coffee: "咖啡粉", emoji: "☕" },
+      { key: "lineart", name: "線稿",       coffee: "熱水",   emoji: "💧" },
+      { key: "color",   name: "上色",       coffee: "糖",     emoji: "🍯" },
+      { key: "finish",  name: "完稿",       coffee: "牛奶",   emoji: "🥛" },
+      { key: "dialog",  name: "對白",       coffee: "拉花",   emoji: "🌿" }
+    ];
+    const TOTAL_STEPS = TOTAL_PAGES * STAGES.length;
+    const ENERGY_MINUTES = { low: 10, mid: 25, high: 50 };
+    const STATUS_LABELS = ["空杯", "備好咖啡粉", "注入熱水", "加糖完畢", "加奶完成", "拉花完成 ✨"];
 
+    // ⭐ 圖檔對應：完成階段數 → 圖檔路徑
+    // 因為圖檔放在 repo 根目錄（跟 index.html 同層），直接寫檔名就好
+    const CUP_IMAGES = [
+      "cup-0-empty.png",     // 0 步：空杯
+      "cup-1-grounds.png",   // 1 步：咖啡粉
+      "cup-2-water.png",     // 2 步：加熱水
+      "cup-3-sugar.png",     // 3 步：加糖
+      "cup-4-milk.png",      // 4 步：加奶
+      "cup-5-latte.png"      // 5 步：拉花完成
+    ];
+    const CUP_MINI_IMAGES = [
+      "cup-0-empty-mini.png",
+      "cup-1-grounds-mini.png",
+      "cup-2-water-mini.png",
+      "cup-3-sugar-mini.png",
+      "cup-4-milk-mini.png",
+      "cup-5-latte-mini.png"
+    ];
+
+    function loadProgress() {
+      return JSON.parse(localStorage.getItem("comicProgress_v6") || "{}");
+    }
+    function saveProgress(data) {
+      localStorage.setItem("comicProgress_v6", JSON.stringify(data));
+    }
+
+    let progress = loadProgress();
+    let currentPage = parseInt(localStorage.getItem("comicCurrentPage_v6") || "1");
+    if (currentPage < 1 || currentPage > TOTAL_PAGES) currentPage = 1;
     let currentEnergy = "low";
-    let currentTask = tasks.low[0];
 
-    const taskText = document.getElementById("taskText");
-    const shuffleBtn = document.getElementById("shuffleBtn");
-    const doneBtn = document.getElementById("doneBtn");
-    const successMessage = document.getElementById("successMessage");
-    const nextStepInput = document.getElementById("nextStep");
-    const logsContainer = document.getElementById("logs");
-    const logSection = document.getElementById("logSection");
-    const energyButtons = document.querySelectorAll(".energy-button");
+    const overallPercent = document.getElementById("overallPercent");
+    const overallDetail  = document.getElementById("overallDetail");
+    const overallBar     = document.getElementById("overallBar");
+    const stagePageNum   = document.getElementById("stagePageNum");
+    const stageStatus    = document.getElementById("stageStatus");
+    const cupDisplay     = document.getElementById("cupDisplay");
+    const cupImage       = document.getElementById("cupImage");
+    const stageChecks    = document.getElementById("stageChecks");
+    const miniGrid       = document.getElementById("miniGrid");
+    const stageBreakdown = document.getElementById("stageBreakdown");
+    const prevBtn        = document.getElementById("prevBtn");
+    const nextBtn        = document.getElementById("nextBtn");
 
-    function setEnergy(energy) {
-      currentEnergy = energy;
-      energyButtons.forEach(button => {
-        button.classList.toggle("active", button.dataset.energy === energy);
-      });
-      currentTask = tasks[energy][0];
-      taskText.textContent = currentTask;
-      successMessage.style.display = "none";
+    function getPageProgress(p) {
+      const data = progress[p] || {};
+      return STAGES.filter(s => data[s.key]).length;
     }
-
-    function shuffleTask() {
-      const list = tasks[currentEnergy];
-      let next = currentTask;
-      while (list.length > 1 && next === currentTask) {
-        next = list[Math.floor(Math.random() * list.length)];
+    function getTotalDone() {
+      let total = 0;
+      for (let i = 1; i <= TOTAL_PAGES; i++) total += getPageProgress(i);
+      return total;
+    }
+    function getStageCount(stageKey) {
+      let count = 0;
+      for (let i = 1; i <= TOTAL_PAGES; i++) {
+        if (progress[i] && progress[i][stageKey]) count++;
       }
-      currentTask = next;
-      taskText.textContent = currentTask;
-      successMessage.style.display = "none";
+      return count;
     }
 
-    function getTodayText() {
-      const now = new Date();
-      return `${now.getMonth() + 1}/${now.getDate()}`;
+    function renderOverall() {
+      const done = getTotalDone();
+      const pct = Math.round((done / TOTAL_STEPS) * 100);
+      overallPercent.textContent = pct + "%";
+      overallDetail.textContent = done + " / " + TOTAL_STEPS;
+      overallBar.style.width = pct + "%";
     }
 
-    function saveLog() {
-      const nextStep = nextStepInput.value.trim() || "下次打開檔案後，先看一頁進度。";
-      const log = {
-        date: getTodayText(),
-        task: currentTask,
-        nextStep
-      };
+    function renderStage(animateDirection) {
+      const data = progress[currentPage] || {};
+      const done = getPageProgress(currentPage);
 
-      const logs = JSON.parse(localStorage.getItem("comicTaskLogs") || "[]");
-      logs.unshift(log);
-      localStorage.setItem("comicTaskLogs", JSON.stringify(logs.slice(0, 5)));
-      renderLogs();
-      successMessage.style.display = "block";
-      nextStepInput.value = "";
+      stagePageNum.textContent = "P " + String(currentPage).padStart(2, "0") + " / 40";
+      stageStatus.textContent = STATUS_LABELS[done];
+
+      // 換圖
+      cupImage.src = CUP_IMAGES[done];
+      cupImage.alt = STATUS_LABELS[done];
+
+      // 完成狀態加光點
+      if (done === 5) cupDisplay.classList.add("complete");
+      else cupDisplay.classList.remove("complete");
+
+      // 動畫
+      cupDisplay.classList.remove("slide-in-from-right", "slide-in-from-left", "celebrate");
+      void cupDisplay.offsetWidth;
+      if (animateDirection === "right") cupDisplay.classList.add("slide-in-from-right");
+      else if (animateDirection === "left") cupDisplay.classList.add("slide-in-from-left");
+      else if (animateDirection === "celebrate") cupDisplay.classList.add("celebrate");
+
+      // 步驟勾選
+      let html = "";
+      STAGES.forEach(s => {
+        const isChecked = !!data[s.key];
+        html += '<div class="stage-check ' + (isChecked ? "checked" : "") + '" data-stage="' + s.key + '">';
+        html += '<input type="checkbox" ' + (isChecked ? "checked" : "") + '>';
+        html += '<span class="stage-icon">' + s.emoji + '</span>';
+        html += '<div class="stage-text">';
+        html += '<div class="stage-name">' + s.name + '</div>';
+        html += '<div class="stage-meta">＝ ' + s.coffee + '</div>';
+        html += '</div>';
+        html += '</div>';
+      });
+      stageChecks.innerHTML = html;
+
+      stageChecks.querySelectorAll('.stage-check').forEach(row => {
+        row.addEventListener("click", (e) => {
+          if (e.target.tagName === "INPUT") return;
+          const cb = row.querySelector('input');
+          cb.checked = !cb.checked;
+          toggleStage(currentPage, row.dataset.stage, cb.checked);
+        });
+        row.querySelector('input').addEventListener("change", (e) => {
+          toggleStage(currentPage, row.dataset.stage, e.target.checked);
+        });
+      });
+
+      prevBtn.disabled = currentPage === 1;
+      nextBtn.disabled = currentPage === TOTAL_PAGES;
+
+      localStorage.setItem("comicCurrentPage_v6", currentPage);
     }
 
-    function renderLogs() {
-      const logs = JSON.parse(localStorage.getItem("comicTaskLogs") || "[]");
-      logsContainer.innerHTML = "";
-
-      if (logs.length === 0) {
-        logSection.style.display = "none";
-        return;
+    function renderMini() {
+      let html = "";
+      for (let i = 1; i <= TOTAL_PAGES; i++) {
+        const done = getPageProgress(i);
+        const cls = ["mini-cup"];
+        if (i === currentPage) cls.push("current");
+        if (done === 5) cls.push("complete");
+        html += '<div class="' + cls.join(" ") + '" data-page="' + i + '">';
+        html += '<img src="' + CUP_MINI_IMAGES[done] + '" alt="cup ' + i + '">';
+        html += '<span class="mini-cup-num">' + i + '</span>';
+        html += '</div>';
       }
-
-      logSection.style.display = "block";
-      logs.forEach(log => {
-        const item = document.createElement("div");
-        item.className = "log-item";
-        item.innerHTML = `
-          <div><span class="log-date">${log.date}</span>｜${log.task}</div>
-          <div class="small">下次：${log.nextStep}</div>
-        `;
-        logsContainer.appendChild(item);
+      miniGrid.innerHTML = html;
+      miniGrid.querySelectorAll('.mini-cup').forEach(el => {
+        el.addEventListener("click", () => {
+          const p = parseInt(el.dataset.page);
+          if (p === currentPage) return;
+          const direction = p > currentPage ? "right" : "left";
+          currentPage = p;
+          renderStage(direction);
+          renderMini();
+        });
       });
     }
 
-    energyButtons.forEach(button => {
-      button.addEventListener("click", () => setEnergy(button.dataset.energy));
+    function renderBreakdown() {
+      stageBreakdown.innerHTML = STAGES.map(s =>
+        '<div class="breakdown-item">' +
+        '<span class="emoji">' + s.emoji + '</span>' +
+        '<span class="count">' + getStageCount(s.key) + '</span>' +
+        s.coffee +
+        '</div>'
+      ).join("");
+    }
+
+    function refreshAll(animateDirection) {
+      renderOverall();
+      renderStage(animateDirection);
+      renderMini();
+      renderBreakdown();
+    }
+
+    function toggleStage(pageNum, stageKey, value) {
+      if (!progress[pageNum]) progress[pageNum] = {};
+      progress[pageNum][stageKey] = value;
+      saveProgress(progress);
+
+      const newDone = getPageProgress(pageNum);
+      const justCompleted = value && newDone === 5;
+
+      renderOverall();
+      renderMini();
+      renderBreakdown();
+
+      if (justCompleted) {
+        renderStage("celebrate");
+        playChime();
+        setTimeout(() => {
+          if (currentPage < TOTAL_PAGES) {
+            currentPage++;
+            renderStage("right");
+            renderMini();
+          }
+        }, 1100);
+      } else {
+        renderStage();
+      }
+    }
+
+    function playChime() {
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        [880, 1175].forEach((freq, i) => {
+          const o = ctx.createOscillator();
+          const g = ctx.createGain();
+          o.connect(g); g.connect(ctx.destination);
+          o.frequency.value = freq;
+          o.type = "sine";
+          const t = ctx.currentTime + i * 0.12;
+          g.gain.setValueAtTime(0, t);
+          g.gain.linearRampToValueAtTime(0.18, t + 0.02);
+          g.gain.exponentialRampToValueAtTime(0.001, t + 0.5);
+          o.start(t);
+          o.stop(t + 0.5);
+        });
+      } catch (e) {}
+    }
+
+    prevBtn.addEventListener("click", () => {
+      if (currentPage > 1) {
+        currentPage--;
+        renderStage("left");
+        renderMini();
+      }
+    });
+    nextBtn.addEventListener("click", () => {
+      if (currentPage < TOTAL_PAGES) {
+        currentPage++;
+        renderStage("right");
+        renderMini();
+      }
     });
 
-    shuffleBtn.addEventListener("click", shuffleTask);
-    doneBtn.addEventListener("click", saveLog);
+    document.addEventListener("keydown", (e) => {
+      if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") return;
+      if (e.key === "ArrowLeft" && currentPage > 1) {
+        currentPage--; renderStage("left"); renderMini();
+      } else if (e.key === "ArrowRight" && currentPage < TOTAL_PAGES) {
+        currentPage++; renderStage("right"); renderMini();
+      }
+    });
 
-    renderLogs();
+    // 番茄鐘
+    const energyButtons = document.querySelectorAll(".energy-button");
+    const timerTime = document.getElementById("timerTime");
+    const timerLabel = document.getElementById("timerLabel");
+    const timerStartBtn = document.getElementById("timerStartBtn");
+    const timerResetBtn = document.getElementById("timerResetBtn");
+    const timerRingFill = document.getElementById("timerRingFill");
+    const timerDisplay = document.getElementById("timerDisplay");
+    const RING_C = 2 * Math.PI * 90;
+
+    let timerSecondsTotal = ENERGY_MINUTES.low * 60;
+    let timerSecondsLeft = timerSecondsTotal;
+    let timerInterval = null;
+    let timerState = "idle";
+
+    function fmt(s) {
+      const m = Math.floor(s / 60);
+      const sec = s % 60;
+      return String(m).padStart(2, "0") + ":" + String(sec).padStart(2, "0");
+    }
+    function updateTimer() {
+      timerTime.textContent = fmt(timerSecondsLeft);
+      timerRingFill.style.strokeDashoffset = RING_C * (1 - timerSecondsLeft / timerSecondsTotal);
+    }
+    function setEnergy(e) {
+      if (timerState === "running") return;
+      currentEnergy = e;
+      energyButtons.forEach(b => b.classList.toggle("active", b.dataset.energy === e));
+      timerSecondsTotal = ENERGY_MINUTES[e] * 60;
+      timerSecondsLeft = timerSecondsTotal;
+      timerLabel.textContent = "準備開始";
+      timerState = "idle";
+      timerStartBtn.textContent = "開始";
+      timerDisplay.classList.remove("timer-running");
+      updateTimer();
+    }
+    function startTimer() {
+      if (timerState === "done") { timerSecondsLeft = timerSecondsTotal; timerState = "idle"; }
+      if (timerState === "idle" || timerState === "paused") {
+        timerState = "running";
+        timerLabel.textContent = "專注中…";
+        timerStartBtn.textContent = "暫停";
+        timerDisplay.classList.add("timer-running");
+        timerInterval = setInterval(() => {
+          timerSecondsLeft--;
+          updateTimer();
+          if (timerSecondsLeft <= 0) finishTimer();
+        }, 1000);
+      } else if (timerState === "running") {
+        clearInterval(timerInterval);
+        timerState = "paused";
+        timerLabel.textContent = "已暫停";
+        timerStartBtn.textContent = "繼續";
+        timerDisplay.classList.remove("timer-running");
+      }
+    }
+    function resetTimer() {
+      clearInterval(timerInterval);
+      timerState = "idle";
+      timerSecondsLeft = timerSecondsTotal;
+      timerLabel.textContent = "準備開始";
+      timerStartBtn.textContent = "開始";
+      timerDisplay.classList.remove("timer-running");
+      updateTimer();
+    }
+    function finishTimer() {
+      clearInterval(timerInterval);
+      timerState = "done";
+      timerLabel.textContent = "時間到，做得好！";
+      timerStartBtn.textContent = "再來一輪";
+      timerDisplay.classList.remove("timer-running");
+      playChime();
+      if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+    }
+
+    energyButtons.forEach(b => b.addEventListener("click", () => setEnergy(b.dataset.energy)));
+    timerStartBtn.addEventListener("click", startTimer);
+    timerResetBtn.addEventListener("click", resetTimer);
+
+    refreshAll();
+    setEnergy("low");
   </script>
 </body>
 </html>
